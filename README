@@ -1,0 +1,69 @@
+About
+
+Provides the ability to render video from a GStreamer pipeline to a QML-based
+UI, with opengl acceleration.
+
+Building
+
+You need qt development libraries, qt-opengl, qt-mobility, xv and gstreamer.
+
+qmake
+make
+make install
+
+Testing
+
+cd tests
+qmake
+make
+./test
+
+Using
+
+The makefile should install both pkgconfig .pc files as well as qmake
+.prl files. See the tests/test.pro for an example of using the library
+with qmake. Once installed, the following should give the required
+compiler flags:
+
+pkg-config --libs --cflags qt-gst-qml-sink
+
+Hacking
+
+The library is heavily based on code from qt-mobility. At this time,
+qt-mobility is still a dependency. The following files are the most
+important:
+
+- qpaintervideosurface.{cpp,h}
+- qvideosurfacegstsink.{cpp,h}
+- gstvideoitem.{cpp,h}
+
+The core of the drawing code is in qpaintervideosurface.cpp. In this
+file you will find both generic and opengl drawing routines, as well
+as shader programs for colorspace conversion. Most of the
+functionality is not implemented in the QPainterVideoSurface class
+itself, but in delegate classes which are chosen at run-time based on
+available features. Ther are three main delegate classes:
+
+- a generic delegate, which merely uses QPainter as a back-end
+- an opengl delegate which uses FragmentProgram shader programs
+- an opengl delegate which uses Glsl shader programs
+
+The gstreamer element is implemented in qvideosurfacegstsink.{cpp,h}.
+Note that although this file is a C++ file, it implements a type
+derived from GstBaseSink. There are again two parts to this object as
+well: a class which implements the GType and a private delegate.
+
+The actual graphics item is implemented in gstvideoitem.{cpp,h}. You
+can use it from QML by registering the type with QML prior to loading
+the qml resources. See the test program in the test directory. This item
+is based on the QGraphicVideoItem provided by QtMM, so keep this in mind
+if you are attempting to port patches from QTMM.
+
+The other files in library are less central, but are needed to compile
+those discussed above.
+
+Future Goals:
+
+- Remove qt-mobility dependency
+- Simplify code (reduce the number of classes)
+- Merge into QtGstreamer
